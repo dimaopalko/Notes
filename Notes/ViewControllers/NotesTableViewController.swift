@@ -11,7 +11,7 @@ import UIKit
 class NotesTableViewController: UITableViewController, UISearchDisplayDelegate {
 
     // OMG I did a monster supermassive view controller 😱
-    // I didn`t find any solution for pagination :(
+    // I didn`t find any solution for pagination yet)
     
     
     @IBOutlet weak var searchBar: UISearchBar!
@@ -22,11 +22,9 @@ class NotesTableViewController: UITableViewController, UISearchDisplayDelegate {
     @IBAction func filterButton(_ sender: Any) {
         let alertController = UIAlertController(title: nil, message: nil, preferredStyle: UIAlertController.Style.actionSheet)
         let byAlphabet = UIAlertAction(title: "By alphabet", style: .default, handler: {(alert: UIAlertAction!) in self.filterByAlphabet()})
-        let byDate = UIAlertAction(title: "By date", style: .default, handler: {(alert: UIAlertAction!) in self.filterByDate()})
         let cancelAction = UIAlertAction(title: "Cancel", style: .cancel, handler: {(alert: UIAlertAction!) in print("cancel")})
         
         alertController.addAction(byAlphabet)
-        alertController.addAction(byDate)
         alertController.addAction(cancelAction)
         
         self.present(alertController, animated: true, completion:{})
@@ -60,12 +58,6 @@ class NotesTableViewController: UITableViewController, UISearchDisplayDelegate {
     
     func filterByAlphabet(){
         filteredNoteArray = filteredNoteArray.sorted { String($0.noteDescription!) < String($1.noteDescription!) }
-        self.tableView.reloadData()
-    }
-    
-    func filterByDate(){
-        filteredNoteArray = notes
-        filteredNoteArray = filteredNoteArray.reversed()
         self.tableView.reloadData()
     }
     
