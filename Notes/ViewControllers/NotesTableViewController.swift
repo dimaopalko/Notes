@@ -13,15 +13,12 @@ class NotesTableViewController: UITableViewController, UISearchDisplayDelegate {
     // OMG I did a monster supermassive view controller 😱
     // I didn`t find any solution for pagination yet)
     
-    
-    @IBOutlet weak var searchBar: UISearchBar!
-    
     @IBAction func addButton(_ sender: Any) {
     }
     
     @IBAction func filterButton(_ sender: Any) {
         let alertController = UIAlertController(title: nil, message: nil, preferredStyle: UIAlertController.Style.actionSheet)
-        let byAlphabet = UIAlertAction(title: "By alphabet", style: .default, handler: {(alert: UIAlertAction!) in self.filterByAlphabet()})
+        let byAlphabet = UIAlertAction(title: "By A-Z", style: .default, handler: {(alert: UIAlertAction!) in self.filterByAlphabet()})
         let cancelAction = UIAlertAction(title: "Cancel", style: .cancel, handler: {(alert: UIAlertAction!) in print("cancel")})
         
         alertController.addAction(byAlphabet)
@@ -32,11 +29,12 @@ class NotesTableViewController: UITableViewController, UISearchDisplayDelegate {
     
     var notes: [NoteCoreData] = []
     var filteredNoteArray: [NoteCoreData] = []
+    fileprivate let searchController = UISearchController(searchResultsController: nil)
     
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        searchBar.delegate = self
+        setupSearchController()
         
     }
     
@@ -60,30 +58,64 @@ class NotesTableViewController: UITableViewController, UISearchDisplayDelegate {
         filteredNoteArray = filteredNoteArray.sorted { String($0.noteDescription!) < String($1.noteDescription!) }
         self.tableView.reloadData()
     }
+    func setupSearchController(){
+        searchController.searchResultsUpdater = self
+        searchController.obscuresBackgroundDuringPresentation = false
+        searchController.searchBar.placeholder = "Search Notes"
+        navigationItem.searchController = searchController
+        definesPresentationContext = true
+    }
+    func searchBarIsEmpty() -> Bool {
+        // Returns true if the text is empty or nil
+        return searchController.searchBar.text?.isEmpty ?? true
+    }
+    func filterContentForSearchText(_ searchText: String, scope: String = "All") {
+        filteredNoteArray = notes.filter({( notes : NoteCoreData) -> Bool in
+            return (notes.noteDescription?.lowercased().contains(searchText.lowercased()))!
+        })
+        tableView.reloadData()
+    }
+    func isFiltering() -> Bool {
+        return searchController.isActive && !searchBarIsEmpty()
+    }
     
     // MARK: - Table view data source
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return filteredNoteArray.count
+        if isFiltering() {
+            return filteredNoteArray.count
+        }
+        
+        return notes.count
     }
+
     
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        
-        
         let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
-        if let noteText = filteredNoteArray[indexPath.row].noteDescription {
-            if noteText.count <= 100 {
-                cell.textLabel?.text = noteText
-            } else {
-                cell.textLabel?.text = String(noteText.dropLast(noteText.count - 100)) + "..."
+        if isFiltering(){
+            if let noteText = filteredNoteArray[indexPath.row].noteDescription {
+                if noteText.count <= 100 {
+                    cell.textLabel?.text = noteText
+                } else {
+                    cell.textLabel?.text = String(noteText.dropLast(noteText.count - 100)) + "..."
+                }
             }
+        } else {
+            if let noteText = notes[indexPath.row].noteDescription {
+                if noteText.count <= 100 {
+                    cell.textLabel?.text = noteText
+                } else {
+                    cell.textLabel?.text = String(noteText.dropLast(noteText.count - 100)) + "..."
+                }
+            }
+            
+            
         }
         cell.textLabel?.numberOfLines = 2
         
         return cell
     }
-    
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let note = filteredNoteArray[indexPath.row]
         
@@ -94,10 +126,10 @@ class NotesTableViewController: UITableViewController, UISearchDisplayDelegate {
         if editingStyle == .delete {
             
             if let context = (UIApplication.shared.delegate as? AppDelegate)?.persistentContainer.viewContext {
-                let note = filteredNoteArray[indexPath.row]
+                let note = notes[indexPath.row]
                 
                 context.delete(note)
-                filteredNoteArray.remove(at: indexPath.row)
+                notes.remove(at: indexPath.row)
             }
             
             tableView.deleteRows(at: [indexPath], with: .fade)
@@ -107,7 +139,7 @@ class NotesTableViewController: UITableViewController, UISearchDisplayDelegate {
     }
     
     
-
+    
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if let addVC = segue.destination as? AddViewController {
             addVC.previousVC = self
@@ -122,41 +154,11 @@ class NotesTableViewController: UITableViewController, UISearchDisplayDelegate {
     }
 }
 
-
-
-extension NotesTableViewController: UISearchBarDelegate {
-    
-    
-    func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
-        if searchBar.text!.isEmpty {
-            filteredNoteArray = notes
-            self.searchBar.endEditing(true)
-        } else {
-            searchBar.text = ""
-            filteredNoteArray = notes
-            self.searchBar.endEditing(true)
-        }
-        DispatchQueue.main.async {
-            self.tableView.reloadData()
-        }
-    }
-    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
-        if searchText.isEmpty {
-            
-            filteredNoteArray = notes
-            
-        } else {
-            
-            filteredNoteArray = notes.filter { ($0.noteDescription?.lowercased().contains(searchText.lowercased()))!
-            }
-        }
-        DispatchQueue.main.async {
-            self.tableView.reloadData()
-        }
-    }
-    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
-        self.searchBar.endEditing(true)
-        self.tableView.reloadData()
+extension NotesTableViewController: UISearchResultsUpdating {
+    // MARK: - UISearchResultsUpdating Delegate
+    func updateSearchResults(for searchController: UISearchController) {
+        filterContentForSearchText(searchController.searchBar.text!)
     }
 }
+
 

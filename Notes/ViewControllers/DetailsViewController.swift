@@ -39,6 +39,8 @@ class DetailsViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         title = "Edit Note"
+//        navigationItem.largeTitleDisplayMode = .never
         textView.text = selectedNote?.noteDescription
+        
     }
 }
