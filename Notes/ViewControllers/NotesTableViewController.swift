@@ -55,7 +55,7 @@ class NotesTableViewController: UITableViewController, UISearchDisplayDelegate {
     }
     
     func filterByAlphabet(){
-        filteredNoteArray = filteredNoteArray.sorted { String($0.noteDescription!) < String($1.noteDescription!) }
+        notes = notes.sorted { String($0.noteDescription!) < String($1.noteDescription!) }
         self.tableView.reloadData()
     }
     func setupSearchController(){
