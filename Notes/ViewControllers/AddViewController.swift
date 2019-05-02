@@ -28,7 +28,7 @@ class AddViewController: UIViewController, UITextViewDelegate {
                 }
             }
         } else {
-            let alertController = UIAlertController(title: "Enter text or I will punch you.", message: nil, preferredStyle: UIAlertController.Style.alert)
+            let alertController = UIAlertController(title: "Enter text or I will punch you in the neck!", message: nil, preferredStyle: UIAlertController.Style.alert)
             let cancelAction = UIAlertAction(title: "Ok!", style: .cancel, handler: nil)
             alertController.addAction(cancelAction)
             present(alertController, animated: true, completion: nil)
